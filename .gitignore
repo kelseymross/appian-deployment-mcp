@@ -13,9 +13,11 @@ build/
 .idea/
 .vscode/
 
+# Kiro
+.kiro/
+
 # Environment / secrets
 .env
-.kiro/settings/mcp.json
 
 # OS
 .DS_Store
