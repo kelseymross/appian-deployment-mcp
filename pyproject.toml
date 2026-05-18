@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "appian-deployment-mcp"
+version = "0.1.0"
+description = "MCP server wrapping the Appian Deployment REST API v2"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "mcp[cli]",
+    "httpx",
+]
+
+[project.scripts]
+appian-deployment = "appian_deployment_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/appian_deployment_mcp"]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "hypothesis",
+    "respx",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

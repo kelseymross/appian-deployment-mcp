@@ -1,0 +1,27 @@
+# Virtual environments
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+
+# Environment / secrets
+.env
+.kiro/settings/mcp.json
+
+# OS
+.DS_Store
+
+# pytest
+.pytest_cache/
+
+# uv
+.python-version
