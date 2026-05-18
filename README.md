@@ -1,7 +1,7 @@
 # Appian Deployment MCP Server
 
-An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that wraps the [Appian Deployment REST API v2](https://docs.appian.com/suite/help/latest/Deployment_REST_API.html). It lets AI assistants export, inspect, deploy, and monitor Appian packages on your behalf.
-
+An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that wraps the [Appian Deployment REST API](https://docs.appian.com/suite/help/latest/Deployment_Rest_API.html). It lets AI assistants export, inspect, deploy, and monitor Appian packages on your behalf.
+ 
 ## Tools
 
 | Tool | Description |
