@@ -75,8 +75,8 @@ Add this to your MCP client config (e.g. `.kiro/settings/mcp.json`, `claude_desk
 {
   "mcpServers": {
     "appian-deployment": {
-      "command": "path/to/appian-deployment-mcp/.venv/bin/python",
-      "args": ["-m", "appian_deployment_mcp.server"],
+      "command": "path/to/appian-deployment-mcp/.venv/bin/appian-deployment",
+      "args": [],
       "env": {
         "APPIAN_DOMAIN": "your-site.appiancloud.com",
         "APPIAN_API_KEY": "your-api-key"
