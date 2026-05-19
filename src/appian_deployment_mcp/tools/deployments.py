@@ -16,6 +16,7 @@ async def deploy_package(
     plugins_file_path: str | None = None,
     data_source: str | None = None,
     database_scripts: list[dict] | None = None,
+    database_scripts_folder: str | None = None,
     description: str | None = None,
     environment: str | None = None,
 ) -> dict:
@@ -29,6 +30,7 @@ async def deploy_package(
         plugins_file_path: Optional path to the plugins .zip file.
         data_source: Optional data source name or UUID for database scripts.
         database_scripts: Optional list of objects with fileName and orderId.
+        database_scripts_folder: Optional path to folder containing the .sql files referenced in database_scripts.
         description: Optional description for the deployment.
         environment: Optional environment name. Uses the default environment if not specified.
 
@@ -107,6 +109,17 @@ async def deploy_package(
         json_part["dataSource"] = data_source
     if database_scripts is not None:
         json_part["databaseScripts"] = database_scripts
+
+    # Upload database script files if folder is provided
+    if database_scripts is not None and database_scripts_folder is not None:
+        scripts_dir = Path(database_scripts_folder)
+        if not scripts_dir.exists():
+            return {"error": True, "message": f"Database scripts folder not found: {database_scripts_folder}"}
+        for script in database_scripts:
+            script_file = scripts_dir / script["fileName"]
+            if not script_file.exists():
+                return {"error": True, "message": f"Database script file not found: {script_file}"}
+            files[script["fileName"]] = (script["fileName"], script_file.read_bytes(), "application/sql")
 
     config = resolve_environment(get_environments(), environment)
     client = AppianClient(config)
