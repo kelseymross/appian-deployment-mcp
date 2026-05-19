@@ -46,7 +46,7 @@ class AppianClient:
         """POST multipart/form-data with JSON metadata and file parts."""
         try:
             multipart_files: dict[str, tuple] = {
-                "json": ("json", json.dumps(json_part).encode(), "application/json"),
+                "json": (None, json.dumps(json_part).encode(), "application/json"),
             }
             multipart_files.update(files)
             response = await self._client.post(path, files=multipart_files, headers=headers)

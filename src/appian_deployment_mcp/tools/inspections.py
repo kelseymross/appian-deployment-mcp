@@ -63,7 +63,13 @@ async def inspect_package(
             "application/zip",
         )
 
-    json_part: dict = {}
+    json_part: dict = {
+        "packageFileName": package_path.name,
+    }
+    if customization_file_path is not None:
+        json_part["customizationFileName"] = Path(customization_file_path).name
+    if admin_console_settings_file_path is not None:
+        json_part["adminConsoleSettingsFileName"] = Path(admin_console_settings_file_path).name
 
     config = resolve_environment(get_environments(), environment)
     client = AppianClient(config)

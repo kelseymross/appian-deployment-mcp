@@ -35,9 +35,10 @@ class TestExportPackage:
 
         captured = {}
 
-        async def fake_post_json(self, path, body=None, headers=None):
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
             captured["path"] = path
-            captured["body"] = body
+            captured["json_part"] = json_part
+            captured["files"] = files
             captured["headers"] = headers
             return SAMPLE_EXPORT_RESPONSE
 
@@ -45,7 +46,8 @@ class TestExportPackage:
             pass
 
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close
@@ -60,10 +62,11 @@ class TestExportPackage:
 
         assert captured["path"] == "/deployments"
         assert captured["headers"] == {"Action-Type": "export"}
-        assert captured["body"]["uuids"] == ["uuid-1", "uuid-2"]
-        assert captured["body"]["exportType"] == "package"
-        assert captured["body"]["name"] == "My Export"
-        assert captured["body"]["description"] == "Test export"
+        assert captured["json_part"]["uuids"] == ["uuid-1", "uuid-2"]
+        assert captured["json_part"]["exportType"] == "package"
+        assert captured["json_part"]["name"] == "My Export"
+        assert captured["json_part"]["description"] == "Test export"
+        assert captured["files"] == {}
         assert result == SAMPLE_EXPORT_RESPONSE
 
     @pytest.mark.asyncio
@@ -73,15 +76,16 @@ class TestExportPackage:
 
         captured = {}
 
-        async def fake_post_json(self, path, body=None, headers=None):
-            captured["body"] = body
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
+            captured["json_part"] = json_part
             return SAMPLE_EXPORT_RESPONSE
 
         async def fake_close(self):
             pass
 
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close
@@ -91,7 +95,7 @@ class TestExportPackage:
             uuids=["uuid-1"], export_type="application"
         )
 
-        assert captured["body"]["exportType"] == "application"
+        assert captured["json_part"]["exportType"] == "application"
         assert result == SAMPLE_EXPORT_RESPONSE
 
     @pytest.mark.asyncio
@@ -108,20 +112,21 @@ class TestExportPackage:
 
     @pytest.mark.asyncio
     async def test_optional_fields_omitted_when_none(self, monkeypatch, default_envs):
-        """When name and description are not provided, they are not in the body."""
+        """When name and description are not provided, they are not in the json_part."""
         monkeypatch.setattr("appian_deployment_mcp.server._environments", default_envs)
 
         captured = {}
 
-        async def fake_post_json(self, path, body=None, headers=None):
-            captured["body"] = body
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
+            captured["json_part"] = json_part
             return SAMPLE_EXPORT_RESPONSE
 
         async def fake_close(self):
             pass
 
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close
@@ -131,8 +136,8 @@ class TestExportPackage:
             uuids=["uuid-1"], export_type="package"
         )
 
-        assert "name" not in captured["body"]
-        assert "description" not in captured["body"]
+        assert "name" not in captured["json_part"]
+        assert "description" not in captured["json_part"]
 
     @pytest.mark.asyncio
     async def test_uses_specified_environment(self, monkeypatch, default_envs):
@@ -145,7 +150,7 @@ class TestExportPackage:
             captured_config["name"] = config.name
             captured_config["domain"] = config.domain
 
-        async def fake_post_json(self, path, body=None, headers=None):
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
             return SAMPLE_EXPORT_RESPONSE
 
         async def fake_close(self):
@@ -155,7 +160,8 @@ class TestExportPackage:
             "appian_deployment_mcp.tools.exports.AppianClient.__init__", fake_init
         )
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close
@@ -178,7 +184,7 @@ class TestExportPackage:
         def fake_init(self, config):
             captured_config["name"] = config.name
 
-        async def fake_post_json(self, path, body=None, headers=None):
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
             return SAMPLE_EXPORT_RESPONSE
 
         async def fake_close(self):
@@ -188,7 +194,8 @@ class TestExportPackage:
             "appian_deployment_mcp.tools.exports.AppianClient.__init__", fake_init
         )
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close
@@ -211,14 +218,15 @@ class TestExportPackage:
             "message": "Concurrency limit reached. Retry the operation after a short delay.",
         }
 
-        async def fake_post_json(self, path, body=None, headers=None):
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
             return error_response
 
         async def fake_close(self):
             pass
 
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close
@@ -248,14 +256,15 @@ class TestExportPackage:
 
         closed = {"called": False}
 
-        async def fake_post_json(self, path, body=None, headers=None):
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
             return SAMPLE_EXPORT_RESPONSE
 
         async def fake_close(self):
             closed["called"] = True
 
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close
@@ -268,19 +277,20 @@ class TestExportPackage:
 
     @pytest.mark.asyncio
     async def test_client_closed_on_error(self, monkeypatch, default_envs):
-        """The client is closed even when post_json raises an exception."""
+        """The client is closed even when post_multipart raises an exception."""
         monkeypatch.setattr("appian_deployment_mcp.server._environments", default_envs)
 
         closed = {"called": False}
 
-        async def fake_post_json(self, path, body=None, headers=None):
+        async def fake_post_multipart(self, path, json_part, files, headers=None):
             raise RuntimeError("boom")
 
         async def fake_close(self):
             closed["called"] = True
 
         monkeypatch.setattr(
-            "appian_deployment_mcp.tools.exports.AppianClient.post_json", fake_post_json
+            "appian_deployment_mcp.tools.exports.AppianClient.post_multipart",
+            fake_post_multipart,
         )
         monkeypatch.setattr(
             "appian_deployment_mcp.tools.exports.AppianClient.close", fake_close

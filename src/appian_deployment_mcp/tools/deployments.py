@@ -95,6 +95,14 @@ async def deploy_package(
     json_part: dict = {"name": name}
     if description is not None:
         json_part["description"] = description
+    if package_file_path is not None:
+        json_part["packageFileName"] = Path(package_file_path).name
+    if customization_file_path is not None:
+        json_part["customizationFileName"] = Path(customization_file_path).name
+    if plugins_file_path is not None:
+        json_part["pluginsFileName"] = Path(plugins_file_path).name
+    if admin_console_settings_file_path is not None:
+        json_part["adminConsoleSettingsFileName"] = Path(admin_console_settings_file_path).name
     if data_source is not None:
         json_part["dataSource"] = data_source
     if database_scripts is not None:

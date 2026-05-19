@@ -31,20 +31,20 @@ async def export_package(
             "message": f"Invalid export_type '{export_type}'. Must be 'package' or 'application'.",
         }
 
-    body: dict = {
+    json_part: dict = {
         "uuids": uuids,
         "exportType": export_type,
     }
     if name is not None:
-        body["name"] = name
+        json_part["name"] = name
     if description is not None:
-        body["description"] = description
+        json_part["description"] = description
 
     config = resolve_environment(get_environments(), environment)
     client = AppianClient(config)
     try:
-        return await client.post_json(
-            "/deployments", body=body, headers={"Action-Type": "export"}
+        return await client.post_multipart(
+            "/deployments", json_part=json_part, files={}, headers={"Action-Type": "export"}
         )
     finally:
         await client.close()
