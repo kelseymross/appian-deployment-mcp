@@ -71,22 +71,33 @@ Then pass `environment="prod"` or `environment="dev"` to any tool.
 
 Add this to your MCP client config (e.g. `.kiro/settings/mcp.json`, `claude_desktop_config.json`, etc.):
 
+First, find the full path to the entry point by running this from the repo directory:
+
+```bash
+cd appian-deployment-mcp
+which .venv/bin/appian-deployment || echo "$(pwd)/.venv/bin/appian-deployment"
+```
+
+Then use that path as the `command` value in your config:
+
 ```json
 {
   "mcpServers": {
     "appian-deployment": {
-      "command": "path/to/appian-deployment-mcp/.venv/bin/appian-deployment",
+      "command": "<HOME_PATH>/appian-deployment-mcp/.venv/bin/appian-deployment",
       "args": [],
       "env": {
-        "APPIAN_DOMAIN": "your-site.appiancloud.com",
-        "APPIAN_API_KEY": "your-api-key"
+        "APPIAN_DOMAIN": "<YOUR_DOMAIN>.appiancloud.com",
+        "APPIAN_API_KEY": "<SITE_DEPLOYMENT_API_KEY>"
       }
     }
   }
 }
 ```
 
-Or if installed globally:
+> **Note:** The `command` must be an absolute path to the `appian-deployment` script inside the project's `.venv/bin/` directory. Adjust it to match wherever you cloned the repo.
+
+Or if installed globally (e.g. via `pip install .`):
 
 ```json
 {
@@ -94,8 +105,8 @@ Or if installed globally:
     "appian-deployment": {
       "command": "appian-deployment",
       "env": {
-        "APPIAN_DOMAIN": "your-site.appiancloud.com",
-        "APPIAN_API_KEY": "your-api-key"
+        "APPIAN_DOMAIN": "<YOUR_DOMAIN>.appiancloud.com",
+        "APPIAN_API_KEY": "<SITE_DEPLOYMENT_API_KEY>"
       }
     }
   }
