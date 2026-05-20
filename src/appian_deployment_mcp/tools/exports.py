@@ -9,7 +9,7 @@ from ..server import get_environments, mcp
 async def export_package(
     uuids: list[str],
     export_type: str,
-    name: str | None = None,
+    name: str,
     description: str | None = None,
     environment: str | None = None,
 ) -> dict:
@@ -18,7 +18,7 @@ async def export_package(
     Args:
         uuids: List of UUIDs to export.
         export_type: Either "package" or "application".
-        name: Optional name for the export.
+        name: Name for the export deployment. Ask the user what they want to name it.
         description: Optional description for the export.
         environment: Optional environment name. Uses the default environment if not specified.
 
@@ -34,9 +34,8 @@ async def export_package(
     json_part: dict = {
         "uuids": uuids,
         "exportType": export_type,
+        "name": name,
     }
-    if name is not None:
-        json_part["name"] = name
     if description is not None:
         json_part["description"] = description
 

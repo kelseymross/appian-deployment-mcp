@@ -23,7 +23,7 @@ async def deploy_package(
     """Deploy (import) a package to an Appian environment.
 
     Args:
-        name: Name for the deployment.
+        name: Name for the deployment. Ask the user what they want to name it.
         package_file_path: Optional path to the package .zip file.
         customization_file_path: Optional path to the .properties ICF file.
         admin_console_settings_file_path: Optional path to the admin console settings .zip.

@@ -92,7 +92,7 @@ class TestExportPackage:
         )
 
         result = await exports_module.export_package(
-            uuids=["uuid-1"], export_type="application"
+            uuids=["uuid-1"], export_type="application", name="App Export"
         )
 
         assert captured["json_part"]["exportType"] == "application"
@@ -104,7 +104,7 @@ class TestExportPackage:
         monkeypatch.setattr("appian_deployment_mcp.server._environments", default_envs)
 
         result = await exports_module.export_package(
-            uuids=["uuid-1"], export_type="invalid"
+            uuids=["uuid-1"], export_type="invalid", name="Bad Export"
         )
 
         assert result["error"] is True
@@ -112,7 +112,7 @@ class TestExportPackage:
 
     @pytest.mark.asyncio
     async def test_optional_fields_omitted_when_none(self, monkeypatch, default_envs):
-        """When name and description are not provided, they are not in the json_part."""
+        """When description is not provided, it is not in the json_part."""
         monkeypatch.setattr("appian_deployment_mcp.server._environments", default_envs)
 
         captured = {}
@@ -133,10 +133,10 @@ class TestExportPackage:
         )
 
         await exports_module.export_package(
-            uuids=["uuid-1"], export_type="package"
+            uuids=["uuid-1"], export_type="package", name="My Export"
         )
 
-        assert "name" not in captured["json_part"]
+        assert captured["json_part"]["name"] == "My Export"
         assert "description" not in captured["json_part"]
 
     @pytest.mark.asyncio
@@ -168,7 +168,7 @@ class TestExportPackage:
         )
 
         await exports_module.export_package(
-            uuids=["uuid-1"], export_type="package", environment="staging"
+            uuids=["uuid-1"], export_type="package", name="Staging Export", environment="staging"
         )
 
         assert captured_config["name"] == "staging"
@@ -202,7 +202,7 @@ class TestExportPackage:
         )
 
         await exports_module.export_package(
-            uuids=["uuid-1"], export_type="package"
+            uuids=["uuid-1"], export_type="package", name="Default Export"
         )
 
         assert captured_config["name"] == "default"
@@ -233,7 +233,7 @@ class TestExportPackage:
         )
 
         result = await exports_module.export_package(
-            uuids=["uuid-1"], export_type="package"
+            uuids=["uuid-1"], export_type="package", name="Error Export"
         )
 
         assert result["error"] is True
@@ -246,7 +246,7 @@ class TestExportPackage:
 
         with pytest.raises(ValueError, match="Unknown environment 'nonexistent'"):
             await exports_module.export_package(
-                uuids=["uuid-1"], export_type="package", environment="nonexistent"
+                uuids=["uuid-1"], export_type="package", name="Bad Env", environment="nonexistent"
             )
 
     @pytest.mark.asyncio
@@ -271,7 +271,7 @@ class TestExportPackage:
         )
 
         await exports_module.export_package(
-            uuids=["uuid-1"], export_type="package"
+            uuids=["uuid-1"], export_type="package", name="Close Test"
         )
         assert closed["called"] is True
 
@@ -298,7 +298,7 @@ class TestExportPackage:
 
         with pytest.raises(RuntimeError, match="boom"):
             await exports_module.export_package(
-                uuids=["uuid-1"], export_type="package"
+                uuids=["uuid-1"], export_type="package", name="Error Test"
             )
 
         assert closed["called"] is True
