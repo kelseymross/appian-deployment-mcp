@@ -191,6 +191,15 @@ The Deployment API is not enabled by default on all Appian environments. A syste
 
 Without this, all API calls will return 403 errors.
 
+## Enabling external deployments
+
+By default, Appian only allows deployments from other Appian environments (direct deployments). To deploy packages from external tools like this MCP server, you need to enable external deployments:
+
+1. Go to **Admin Console → System → Deployment API**
+2. Under **Import Source**, select **External** (or **Both** if you also want direct deployments)
+
+Without this, import/deploy operations will be rejected even if the API itself is enabled.
+
 ## Python version
 
 This project requires Python 3.11 or later. If you're on an older version:
