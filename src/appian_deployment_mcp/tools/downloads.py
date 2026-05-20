@@ -12,6 +12,7 @@ from ..server import get_environments, mcp
 @mcp.tool()
 async def download_exported_package(
     deployment_uuid: str,
+    filename: str | None = None,
     save_directory: str | None = None,
     environment: str | None = None,
 ) -> dict:
@@ -19,6 +20,7 @@ async def download_exported_package(
 
     Args:
         deployment_uuid: The UUID of the export deployment to download.
+        filename: Optional name for the downloaded file (e.g. "my-package.zip"). If not provided, uses the filename from the export URL.
         save_directory: Optional directory to save the file to. Defaults to the current working directory.
         environment: Optional environment name. Uses the default environment if not specified.
 
@@ -40,12 +42,15 @@ async def download_exported_package(
                 "message": "Deployment is not a completed export or the UUID is invalid.",
             }
 
-        # Extract filename from the URL path
-        url_path = urlparse(package_zip_url).path
-        filename = Path(url_path).name or f"{deployment_uuid}.zip"
+        # Determine filename
+        if filename:
+            save_filename = filename
+        else:
+            url_path = urlparse(package_zip_url).path
+            save_filename = Path(url_path).name or f"{deployment_uuid}.zip"
 
         save_dir = Path(save_directory) if save_directory else Path(os.getcwd())
-        save_path = save_dir / filename
+        save_path = save_dir / save_filename
 
         await client.download_file(package_zip_url, save_path)
 
