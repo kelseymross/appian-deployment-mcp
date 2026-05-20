@@ -67,6 +67,21 @@ APPIAN_DEV_API_KEY=your-dev-key
 
 Then pass `environment="prod"` or `environment="dev"` to any tool.
 
+**Using OAuth instead of an API key:**
+
+You can use an OAuth bearer token by setting `APPIAN_OAUTH_TOKEN` instead of `APPIAN_API_KEY`:
+
+```json
+{
+  "env": {
+    "APPIAN_DOMAIN": "<YOUR_DOMAIN>.appiancloud.com",
+    "APPIAN_OAUTH_TOKEN": "<YOUR_OAUTH_TOKEN>"
+  }
+}
+```
+
+> **Note:** OAuth tokens expire. When a token expires, API calls will return 401 errors and you'll need to update the token and restart the MCP server. For long-running use, API keys are simpler.
+
 ### MCP client configuration
 
 Add this to your MCP client config (e.g. `.kiro/settings/mcp.json`, `claude_desktop_config.json`, etc.):
