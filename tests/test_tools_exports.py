@@ -54,7 +54,7 @@ class TestExportPackage:
         )
 
         result = await exports_module.export_package(
-            uuids=["uuid-1", "uuid-2"],
+            uuids=["uuid-1"],
             export_type="package",
             name="My Export",
             description="Test export",
@@ -62,7 +62,7 @@ class TestExportPackage:
 
         assert captured["path"] == "/deployments"
         assert captured["headers"] == {"Action-Type": "export"}
-        assert captured["json_part"]["uuids"] == ["uuid-1", "uuid-2"]
+        assert captured["json_part"]["uuids"] == ["uuid-1"]
         assert captured["json_part"]["exportType"] == "package"
         assert captured["json_part"]["name"] == "My Export"
         assert captured["json_part"]["description"] == "Test export"

@@ -16,7 +16,7 @@ async def export_package(
     """Export an Appian package or application.
 
     Args:
-        uuids: List of UUIDs to export.
+        uuids: List of UUIDs to export. For applications, you can specify multiple UUIDs to export multiple applications together. For packages, only a single UUID is allowed.
         export_type: Either "package" or "application".
         name: Name for the export deployment. Ask the user what they want to name it.
         description: Optional description for the export.
@@ -29,6 +29,12 @@ async def export_package(
         return {
             "error": True,
             "message": f"Invalid export_type '{export_type}'. Must be 'package' or 'application'.",
+        }
+
+    if export_type == "package" and len(uuids) > 1:
+        return {
+            "error": True,
+            "message": "Package exports only support a single UUID. Use export_type 'application' to export multiple items.",
         }
 
     json_part: dict = {

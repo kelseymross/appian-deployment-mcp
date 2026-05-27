@@ -22,6 +22,33 @@ async def deploy_package(
 ) -> dict:
     """Deploy (import) a package to an Appian environment.
 
+    IMPORTANT - Pre-Deployment Inspection (Required Workflow):
+        Before calling this tool, you MUST first run inspect_package with the same
+        package_file_path (and customization_file_path / admin_console_settings_file_path
+        if provided), then poll the inspection results using poll_inspection_status.
+        Present the inspection results to the user and WAIT for their explicit approval
+        before proceeding with this deploy_package call.
+
+        The only exception is if the user explicitly says "skip inspect" or similar —
+        in that case you may proceed directly to deployment without inspection.
+
+        Workflow:
+        1. Call inspect_package with the package file (and optional ICF/admin settings)
+        2. Poll inspection status until complete using poll_inspection_status
+        3. Present inspection results (errors, warnings, object counts) to the user
+        4. WAIT for user confirmation to proceed
+        5. Only then call this deploy_package tool
+
+    IMPORTANT - Sensitive File Handling:
+        Import Customization Files (ICF / .properties files) often contain sensitive
+        environment-specific values such as API keys, connection strings, passwords,
+        and other secrets. When working with these files:
+        - NEVER display or echo the contents of .properties/ICF files in chat or responses.
+        - Reference these files by path only.
+        - If describing an ICF file, mention its structure (e.g., "contains 3 constants")
+          without revealing actual values.
+        - Download and save ICF files to disk without showing their content to the user.
+
     Args:
         name: Name for the deployment. Ask the user what they want to name it.
         package_file_path: Optional path to the package .zip file.

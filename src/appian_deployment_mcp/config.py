@@ -2,7 +2,28 @@
 
 import os
 import re
+import tempfile
 from dataclasses import dataclass
+
+
+SUPPORTED_API_VERSIONS = ("v1", "v2", "v3")
+DEFAULT_API_VERSION = "v2"
+
+
+def get_save_directory() -> str:
+    """Get the configured save directory for deployment artifacts.
+
+    Resolution order:
+    1. APPIAN_SAVE_DIRECTORY environment variable (if set)
+    2. Default: system temp directory under 'appian-deployments/'
+
+    Returns:
+        An absolute path to the save directory.
+    """
+    configured = os.environ.get("APPIAN_SAVE_DIRECTORY")
+    if configured:
+        return configured
+    return os.path.join(tempfile.gettempdir(), "appian-deployments")
 
 
 @dataclass(frozen=True)
@@ -13,10 +34,11 @@ class EnvironmentConfig:
     domain: str
     api_key: str | None = None
     oauth_token: str | None = None
+    api_version: str = DEFAULT_API_VERSION
 
     @property
     def base_url(self) -> str:
-        return f"https://{self.domain}/suite/deployment-management/v2"
+        return f"https://{self.domain}/suite/deployment-management/{self.api_version}"
 
     @property
     def auth_headers(self) -> dict[str, str]:
@@ -45,16 +67,23 @@ def load_environments() -> dict[str, EnvironmentConfig]:
     if default_domain:
         api_key = os.environ.get("APPIAN_API_KEY")
         oauth_token = os.environ.get("APPIAN_OAUTH_TOKEN")
+        api_version = os.environ.get("APPIAN_API_VERSION", DEFAULT_API_VERSION)
         if not api_key and not oauth_token:
             raise ValueError(
                 "Authentication credentials are required. "
                 "Set APPIAN_API_KEY or APPIAN_OAUTH_TOKEN."
+            )
+        if api_version not in SUPPORTED_API_VERSIONS:
+            raise ValueError(
+                f"Unsupported API version '{api_version}'. "
+                f"Supported versions: {', '.join(SUPPORTED_API_VERSIONS)}"
             )
         environments["default"] = EnvironmentConfig(
             name="default",
             domain=default_domain,
             api_key=api_key or None,
             oauth_token=oauth_token or None,
+            api_version=api_version,
         )
 
     # --- named environments (APPIAN_<ENV>_DOMAIN) ---
@@ -66,16 +95,25 @@ def load_environments() -> dict[str, EnvironmentConfig]:
         env_name = match.group(1).lower()
         api_key = os.environ.get(f"APPIAN_{match.group(1)}_API_KEY")
         oauth_token = os.environ.get(f"APPIAN_{match.group(1)}_OAUTH_TOKEN")
+        api_version = os.environ.get(
+            f"APPIAN_{match.group(1)}_API_VERSION", DEFAULT_API_VERSION
+        )
         if not api_key and not oauth_token:
             raise ValueError(
                 f"Authentication credentials are required for environment '{env_name}'. "
                 f"Set APPIAN_{match.group(1)}_API_KEY or APPIAN_{match.group(1)}_OAUTH_TOKEN."
+            )
+        if api_version not in SUPPORTED_API_VERSIONS:
+            raise ValueError(
+                f"Unsupported API version '{api_version}' for environment '{env_name}'. "
+                f"Supported versions: {', '.join(SUPPORTED_API_VERSIONS)}"
             )
         environments[env_name] = EnvironmentConfig(
             name=env_name,
             domain=domain_value,
             api_key=api_key or None,
             oauth_token=oauth_token or None,
+            api_version=api_version,
         )
 
     if not environments:

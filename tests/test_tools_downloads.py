@@ -160,9 +160,12 @@ class TestDownloadExportedPackage:
     async def test_defaults_to_cwd_when_no_save_directory(
         self, monkeypatch, default_envs, tmp_path
     ):
-        """Uses current working directory when save_directory is not provided."""
+        """Uses configured save directory when save_directory is not provided."""
         monkeypatch.setattr("appian_deployment_mcp.server._environments", default_envs)
-        monkeypatch.setattr("os.getcwd", lambda: str(tmp_path))
+        monkeypatch.setattr(
+            "appian_deployment_mcp.tools.downloads.get_save_directory",
+            lambda: str(tmp_path),
+        )
 
         async def fake_get(self, path):
             return SAMPLE_EXPORT_RESPONSE
