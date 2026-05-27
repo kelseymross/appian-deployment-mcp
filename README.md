@@ -83,7 +83,7 @@ The server reads Appian connection details from environment variables:
 | `APPIAN_DOMAIN` | Yes | Your Appian site domain (e.g. `mysite.appiancloud.com`) |
 | `APPIAN_API_KEY` | One of these | API key for authentication |
 | `APPIAN_OAUTH_TOKEN` | One of these | OAuth bearer token for authentication |
-| `APPIAN_API_VERSION` | No | API version to use: `v1`, `v2`, or `v3` (defaults to `v2`) |
+| `APPIAN_API_VERSION` | No | API version to use: `v1` or `v2` (defaults to `v2`) |
 | `APPIAN_SAVE_DIRECTORY` | No | Directory for downloaded deployment artifacts. Defaults to system temp directory (`/tmp/appian-deployments/` on macOS/Linux). Files in the temp directory may be cleaned up by the OS. Set this to a persistent path if you want to keep downloaded artifacts. |
 
 **Named environments** (for multi-environment workflows):
