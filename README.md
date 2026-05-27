@@ -270,11 +270,8 @@ uv run pytest
 uv run appian-deployment
 ```
 
-## Getting an API key
 
-Generate an API key from your Appian environment's Admin Console under **Settings → API Keys**. The key must belong to a user with system administrator privileges or a service account with deployment permissions. See the [Appian docs](https://docs.appian.com/suite/help/latest/Deployment_Rest_API.html#authentication) for details.
-
-## Enabling the Deployment API
+## Enabling the external deployments
 
 The Deployment API is not enabled by default on all Appian environments. A system administrator needs to turn it on:
 
@@ -287,14 +284,9 @@ Without this, all API calls will return 403 errors.
 
 You will need to configure your deployment and authentication service accounts when configuring these deployment settings.
 
-## Enabling external deployments
+## Getting an API key
 
-By default, Appian only allows deployments from other Appian environments (direct deployments). To deploy packages from external tools like this MCP server, you need to enable external deployments:
-
-1. Go to **Admin Console → System → Deployment API**
-2. Under **Import Source**, select **External** (or **Both** if you also want direct deployments)
-
-Without this, import/deploy operations will be rejected even if the API itself is enabled.
+Generate an API key from your Appian environment's Admin Console under **AUTHENTICATION → Web API Authentication**. The key must belong to a user with system administrator privileges or a service account with deployment permissions. See the [Appian docs](https://docs.appian.com/suite/help/latest/Deployment_Rest_API.html#authentication) for details.
 
 ## Python version
 
