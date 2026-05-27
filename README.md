@@ -270,10 +270,6 @@ uv run pytest
 uv run appian-deployment
 ```
 
-## License
-
-MIT
-
 ## Getting an API key
 
 Generate an API key from your Appian environment's Admin Console under **Settings → API Keys**. The key must belong to a user with system administrator privileges or a service account with deployment permissions. See the [Appian docs](https://docs.appian.com/suite/help/latest/Deployment_Rest_API.html#authentication) for details.
@@ -282,10 +278,14 @@ Generate an API key from your Appian environment's Admin Console under **Setting
 
 The Deployment API is not enabled by default on all Appian environments. A system administrator needs to turn it on:
 
-1. Go to **Admin Console → System → Deployment API**
-2. Toggle the API to **Enabled**
+1. Go to **Admin Console**
+2. Go to the **DEVOPS** section
+3. Select **INFRASTRUCTURE**
+4. Depending on your environment, in the **External Deployments** section select **Enable incoming** or **Enable outgoing** to enable deployments to or from the environment.
 
 Without this, all API calls will return 403 errors.
+
+You will need to configure your deployment and authentication service accounts when configuring these deployment settings.
 
 ## Enabling external deployments
 
@@ -327,3 +327,8 @@ pyenv local 3.11
 4. Run the test suite: `uv run pytest`
 5. Ensure all tests pass before opening a PR
 6. Open a pull request against `main` with a clear description of the change
+
+
+## License
+
+MIT
