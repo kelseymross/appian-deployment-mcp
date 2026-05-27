@@ -5,9 +5,12 @@ import re
 import tempfile
 from dataclasses import dataclass
 
+from .keychain import read_from_keychain
+
 
 SUPPORTED_API_VERSIONS = ("v1", "v2", "v3")
 DEFAULT_API_VERSION = "v2"
+DEFAULT_KEYCHAIN_ACCOUNT = "appian-deployment-mcp"
 
 
 def get_save_directory() -> str:
@@ -47,12 +50,59 @@ class EnvironmentConfig:
         return {"Authorization": f"Bearer {self.oauth_token}"}
 
 
+def _resolve_api_key(prefix: str) -> str | None:
+    """Resolve an API key from env var or keychain.
+
+    Resolution order:
+    1. Direct env var (e.g., APPIAN_API_KEY or APPIAN_DEV_API_KEY)
+    2. Keychain lookup if _API_KEY_SOURCE=keychain is set
+
+    Args:
+        prefix: The env var prefix (e.g., "APPIAN" or "APPIAN_DEV").
+
+    Returns:
+        The API key string, or None if not found.
+    """
+    # 1. Direct plaintext value
+    api_key = os.environ.get(f"{prefix}_API_KEY")
+    if api_key:
+        return api_key
+
+    # 2. Keychain lookup
+    key_source = os.environ.get(f"{prefix}_API_KEY_SOURCE", "").lower()
+    if key_source == "keychain":
+        service = os.environ.get(
+            f"{prefix}_API_KEY_SERVICE",
+            f"{prefix.lower().replace('_', '-')}-api-key",
+        )
+        account = os.environ.get(
+            f"{prefix}_API_KEY_ACCOUNT",
+            DEFAULT_KEYCHAIN_ACCOUNT,
+        )
+        keychain_value = read_from_keychain(service, account)
+        if keychain_value:
+            return keychain_value
+        raise ValueError(
+            f"Keychain lookup failed for service='{service}', account='{account}'. "
+            f"Store your API key with:\n"
+            f"  macOS:  security add-generic-password -s \"{service}\" "
+            f"-a \"{account}\" -w \"<your-api-key>\"\n"
+            f"  Linux:  secret-tool store --label=\"{service}\" "
+            f"service \"{service}\" account \"{account}\""
+        )
+
+    return None
+
+
 def load_environments() -> dict[str, EnvironmentConfig]:
     """Load all environments from environment variables.
 
     Reads ``APPIAN_DOMAIN`` + ``APPIAN_API_KEY`` / ``APPIAN_OAUTH_TOKEN`` as the
     default environment, then scans for ``APPIAN_<ENV>_DOMAIN`` patterns to
     discover additional named environments.
+
+    Credentials can be provided directly via env vars or loaded from the
+    system keychain by setting ``APPIAN_API_KEY_SOURCE=keychain``.
 
     Returns a dict keyed by environment name.
 
@@ -65,13 +115,14 @@ def load_environments() -> dict[str, EnvironmentConfig]:
     # --- default environment ---
     default_domain = os.environ.get("APPIAN_DOMAIN")
     if default_domain:
-        api_key = os.environ.get("APPIAN_API_KEY")
+        api_key = _resolve_api_key("APPIAN")
         oauth_token = os.environ.get("APPIAN_OAUTH_TOKEN")
         api_version = os.environ.get("APPIAN_API_VERSION", DEFAULT_API_VERSION)
         if not api_key and not oauth_token:
             raise ValueError(
                 "Authentication credentials are required. "
-                "Set APPIAN_API_KEY or APPIAN_OAUTH_TOKEN."
+                "Set APPIAN_API_KEY, APPIAN_OAUTH_TOKEN, or "
+                "APPIAN_API_KEY_SOURCE=keychain."
             )
         if api_version not in SUPPORTED_API_VERSIONS:
             raise ValueError(
@@ -93,15 +144,17 @@ def load_environments() -> dict[str, EnvironmentConfig]:
         if not match:
             continue
         env_name = match.group(1).lower()
-        api_key = os.environ.get(f"APPIAN_{match.group(1)}_API_KEY")
-        oauth_token = os.environ.get(f"APPIAN_{match.group(1)}_OAUTH_TOKEN")
+        env_prefix = f"APPIAN_{match.group(1)}"
+        api_key = _resolve_api_key(env_prefix)
+        oauth_token = os.environ.get(f"{env_prefix}_OAUTH_TOKEN")
         api_version = os.environ.get(
-            f"APPIAN_{match.group(1)}_API_VERSION", DEFAULT_API_VERSION
+            f"{env_prefix}_API_VERSION", DEFAULT_API_VERSION
         )
         if not api_key and not oauth_token:
             raise ValueError(
                 f"Authentication credentials are required for environment '{env_name}'. "
-                f"Set APPIAN_{match.group(1)}_API_KEY or APPIAN_{match.group(1)}_OAUTH_TOKEN."
+                f"Set {env_prefix}_API_KEY, {env_prefix}_OAUTH_TOKEN, or "
+                f"{env_prefix}_API_KEY_SOURCE=keychain."
             )
         if api_version not in SUPPORTED_API_VERSIONS:
             raise ValueError(

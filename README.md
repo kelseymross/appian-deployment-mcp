@@ -117,6 +117,83 @@ You can use an OAuth bearer token by setting `APPIAN_OAUTH_TOKEN` instead of `AP
 
 > **Note:** OAuth tokens expire. When a token expires, API calls will return 401 errors and you'll need to update the token and restart the MCP server. For long-running use, API keys are simpler.
 
+**Using system keychain (recommended for security):**
+
+Instead of storing API keys in plaintext in your config file, you can store them in your system's keychain and have the MCP server read them at startup.
+
+**Step 1: Store your API key in the keychain**
+
+macOS:
+```bash
+security add-generic-password -s "appian-dev-api-key" -a "appian-deployment-mcp" -w "<your-api-key>"
+```
+
+Linux (requires `secret-tool` / libsecret):
+```bash
+secret-tool store --label="appian-dev-api-key" service "appian-dev-api-key" account "appian-deployment-mcp"
+```
+
+Windows (PowerShell):
+```powershell
+cmdkey /generic:"appian-dev-api-key" /user:"appian-deployment-mcp" /pass:"<your-api-key>"
+```
+
+**Step 2: Configure the MCP to use keychain**
+
+```json
+{
+  "env": {
+    "APPIAN_DEV_DOMAIN": "dev.appiancloud.com",
+    "APPIAN_DEV_API_KEY_SOURCE": "keychain",
+    "APPIAN_DEV_API_KEY_SERVICE": "appian-dev-api-key"
+  }
+}
+```
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `APPIAN_<ENV>_API_KEY_SOURCE` | Yes | Set to `keychain` to enable keychain lookup |
+| `APPIAN_<ENV>_API_KEY_SERVICE` | No | The service/label name in the keychain. Defaults to `appian-<env>-api-key` |
+| `APPIAN_<ENV>_API_KEY_ACCOUNT` | No | The account name in the keychain. Defaults to `appian-deployment-mcp` |
+
+**How it works:**
+- If `APPIAN_API_KEY` (or `APPIAN_<ENV>_API_KEY`) is set directly, it's used as-is (plaintext, backward compatible)
+- If not set but `_API_KEY_SOURCE=keychain` is configured, the server reads from the system keychain at startup
+- If neither is set, the server falls back to OAuth token or returns an error
+
+**Multi-environment keychain example:**
+
+```bash
+# Store keys for each environment
+security add-generic-password -s "appian-dev-api-key" -a "appian-deployment-mcp" -w "<dev-key>"
+security add-generic-password -s "appian-test-api-key" -a "appian-deployment-mcp" -w "<test-key>"
+security add-generic-password -s "appian-prod-api-key" -a "appian-deployment-mcp" -w "<prod-key>"
+```
+
+```json
+{
+  "mcpServers": {
+    "appian-deployment": {
+      "command": "<HOME_PATH>/appian-deployment-mcp/.venv/bin/appian-deployment",
+      "args": [],
+      "env": {
+        "APPIAN_DEV_DOMAIN": "dev.appiancloud.com",
+        "APPIAN_DEV_API_KEY_SOURCE": "keychain",
+        "APPIAN_DEV_API_KEY_SERVICE": "appian-dev-api-key",
+        "APPIAN_TEST_DOMAIN": "test.appiancloud.com",
+        "APPIAN_TEST_API_KEY_SOURCE": "keychain",
+        "APPIAN_TEST_API_KEY_SERVICE": "appian-test-api-key",
+        "APPIAN_PROD_DOMAIN": "prod.appiancloud.com",
+        "APPIAN_PROD_API_KEY_SOURCE": "keychain",
+        "APPIAN_PROD_API_KEY_SERVICE": "appian-prod-api-key"
+      }
+    }
+  }
+}
+```
+
+> **Tip:** To update a stored key on macOS, delete the old entry first: `security delete-generic-password -s "appian-dev-api-key" -a "appian-deployment-mcp"`, then add the new one.
+
 ### MCP client configuration
 
 Add this to your MCP client config (e.g. `.kiro/settings/mcp.json`, `claude_desktop_config.json`, etc.):
