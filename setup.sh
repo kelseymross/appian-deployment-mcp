@@ -184,9 +184,17 @@ echo ""
 echo -e "${CYAN}Generating MCP configuration...${NC}"
 echo ""
 
-# Build the env JSON
-ENV_LINES=$(printf ",\n%s" "${ENV_JSON_PARTS[@]}")
-ENV_LINES="${ENV_LINES:2}" # Remove leading comma and newline
+# Build just the server entry (for merging into existing configs)
+SERVER_ENTRY=$(cat <<EOF
+    "appian-deployment": {
+      "command": "$ENTRY_POINT",
+      "args": [],
+      "env": {
+$ENV_LINES
+      }
+    }
+EOF
+)
 
 MCP_CONFIG=$(cat <<EOF
 {
@@ -212,6 +220,70 @@ echo ""
 echo -e "${DIM}(Sensitive values are redacted above. The saved file will contain actual values.)${NC}"
 echo ""
 
+# --- Helper function to merge into existing mcp.json ---
+merge_or_create_config() {
+    local target_file="$1"
+    local target_dir=$(dirname "$target_file")
+
+    mkdir -p "$target_dir"
+
+    if [ -f "$target_file" ]; then
+        # File exists — check if it already has an appian-deployment entry
+        if grep -q '"appian-deployment"' "$target_file" 2>/dev/null; then
+            echo -e "${YELLOW}  ! $target_file already contains an 'appian-deployment' server entry.${NC}"
+            echo "    1) Replace the existing appian-deployment entry (keeps other servers)"
+            echo "    2) Overwrite the entire file"
+            echo "    3) Skip"
+            read -p "    Choice [1/2/3]: " merge_choice
+            case "$merge_choice" in
+                1)
+                    # Use python to merge just the appian-deployment key
+                    python3 -c "
+import json, sys
+with open('$target_file', 'r') as f:
+    existing = json.load(f)
+new_server = json.loads('''$MCP_CONFIG''')
+if 'mcpServers' not in existing:
+    existing['mcpServers'] = {}
+existing['mcpServers']['appian-deployment'] = new_server['mcpServers']['appian-deployment']
+with open('$target_file', 'w') as f:
+    json.dump(existing, f, indent=2)
+    f.write('\n')
+"
+                    echo -e "  ${GREEN}✓${NC} Updated appian-deployment entry in $target_file (other servers preserved)"
+                    ;;
+                2)
+                    echo "$MCP_CONFIG" > "$target_file"
+                    echo -e "  ${GREEN}✓${NC} Overwrote $target_file"
+                    ;;
+                *)
+                    echo "  Skipped."
+                    ;;
+            esac
+        else
+            # File exists but no appian-deployment entry — merge it in
+            echo -e "${DIM}  Existing config found. Adding appian-deployment server...${NC}"
+            python3 -c "
+import json, sys
+with open('$target_file', 'r') as f:
+    existing = json.load(f)
+new_server = json.loads('''$MCP_CONFIG''')
+if 'mcpServers' not in existing:
+    existing['mcpServers'] = {}
+existing['mcpServers']['appian-deployment'] = new_server['mcpServers']['appian-deployment']
+with open('$target_file', 'w') as f:
+    json.dump(existing, f, indent=2)
+    f.write('\n')
+"
+            echo -e "  ${GREEN}✓${NC} Added appian-deployment to $target_file (existing servers preserved)"
+        fi
+    else
+        # No existing file — create fresh
+        echo "$MCP_CONFIG" > "$target_file"
+        echo -e "  ${GREEN}✓${NC} Created $target_file"
+    fi
+}
+
 # --- Offer to save ---
 echo -e "${CYAN}Where would you like to save this config?${NC}"
 echo "  1) .kiro/settings/mcp.json (workspace - for this project)"
@@ -223,25 +295,10 @@ read -p "Choice [1/2/3/4]: " save_choice
 
 case "$save_choice" in
     1)
-        mkdir -p .kiro/settings
-        echo "$MCP_CONFIG" > .kiro/settings/mcp.json
-        echo -e "${GREEN}✓${NC} Saved to .kiro/settings/mcp.json"
+        merge_or_create_config ".kiro/settings/mcp.json"
         ;;
     2)
-        mkdir -p ~/.kiro/settings
-        if [ -f ~/.kiro/settings/mcp.json ]; then
-            echo -e "${YELLOW}! ~/.kiro/settings/mcp.json already exists.${NC}"
-            read -p "  Overwrite? [y/N]: " overwrite
-            if [[ "$overwrite" =~ ^[Yy] ]]; then
-                echo "$MCP_CONFIG" > ~/.kiro/settings/mcp.json
-                echo -e "${GREEN}✓${NC} Saved to ~/.kiro/settings/mcp.json"
-            else
-                echo "  Skipped."
-            fi
-        else
-            echo "$MCP_CONFIG" > ~/.kiro/settings/mcp.json
-            echo -e "${GREEN}✓${NC} Saved to ~/.kiro/settings/mcp.json"
-        fi
+        merge_or_create_config "$HOME/.kiro/settings/mcp.json"
         ;;
     3)
         if command -v pbcopy &> /dev/null; then
