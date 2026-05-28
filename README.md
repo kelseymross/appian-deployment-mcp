@@ -58,6 +58,25 @@ Multi-environment deployment pipelines that chain export → inspect → import 
 
 ## Installation
 
+### Quick setup (recommended)
+
+The interactive setup script installs dependencies, prompts for your Appian environment details, optionally stores API keys in your system keychain, and generates the MCP config for you:
+
+```bash
+git clone https://github.com/kelseymross/appian-deployment-mcp.git
+cd appian-deployment-mcp
+./setup.sh
+```
+
+The script will:
+1. Check prerequisites (Python 3.11+, uv)
+2. Install the server and dependencies
+3. Prompt for each environment's domain and credentials
+4. Offer to store API keys securely in your system keychain
+5. Generate and save the MCP config to your preferred location
+
+### Manual installation
+
 ```bash
 git clone https://github.com/kelseymross/appian-deployment-mcp.git
 cd appian-deployment-mcp
