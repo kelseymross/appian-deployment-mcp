@@ -1,7 +1,17 @@
 # Appian Deployment MCP Server
 
 An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that wraps the [Appian Deployment REST API](https://docs.appian.com/suite/help/latest/Deployment_Rest_API.html). It lets AI assistants export, inspect, deploy, and monitor Appian packages on your behalf.
- 
+
+## Quick Start
+
+```bash
+git clone https://github.com/kelseymross/appian-deployment-mcp.git
+cd appian-deployment-mcp
+./setup.sh
+```
+
+The setup script will install dependencies, prompt for your Appian environment details, optionally store API keys in your system keychain, and generate the MCP config for you. See [Manual Installation](#manual-installation) below if you prefer to configure things yourself.
+
 ## Tools
 
 ### Single-Environment Tools
@@ -56,26 +66,9 @@ Multi-environment deployment pipelines that chain export → inspect → import 
 - An Appian environment with the Deployment API enabled
 - An [Appian API key](https://docs.appian.com/suite/help/latest/Deployment_Rest_API.html#authentication) or OAuth token
 
-## Installation
+## Manual Installation
 
-### Quick setup (recommended)
-
-The interactive setup script installs dependencies, prompts for your Appian environment details, optionally stores API keys in your system keychain, and generates the MCP config for you:
-
-```bash
-git clone https://github.com/kelseymross/appian-deployment-mcp.git
-cd appian-deployment-mcp
-./setup.sh
-```
-
-The script will:
-1. Check prerequisites (Python 3.11+, uv)
-2. Install the server and dependencies
-3. Prompt for each environment's domain and credentials
-4. Offer to store API keys securely in your system keychain
-5. Generate and save the MCP config to your preferred location
-
-### Manual installation
+If you prefer to set things up manually instead of using `./setup.sh`:
 
 ```bash
 git clone https://github.com/kelseymross/appian-deployment-mcp.git
