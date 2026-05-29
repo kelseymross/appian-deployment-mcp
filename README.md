@@ -278,6 +278,27 @@ Or if installed globally (e.g. via `pip install .`):
 }
 ```
 
+**Alternative: `uv run` style (no binary path needed):**
+
+If you have `uv` installed, you can use this pattern which doesn't require finding the absolute path to the binary:
+
+```json
+{
+  "mcpServers": {
+    "appian-deployment": {
+      "command": "uv",
+      "args": ["run", "--directory", "<ABSOLUTE_PATH_TO_REPO>", "python", "-m", "appian_deployment_mcp"],
+      "env": {
+        "APPIAN_DOMAIN": "<YOUR_DOMAIN>.appiancloud.com",
+        "APPIAN_API_KEY": "<SITE_DEPLOYMENT_API_KEY>"
+      }
+    }
+  }
+}
+```
+
+Replace `<ABSOLUTE_PATH_TO_REPO>` with the path where you cloned the repo (e.g. `/Users/you/appian-deployment-mcp`).
+
 ## Usage examples
 
 ### Export a package
