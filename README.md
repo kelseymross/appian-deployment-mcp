@@ -4,6 +4,14 @@ An [MCP (Model Context Protocol)](https://modelcontextprotocol.io/) server that 
 
 ## Quick Start
 
+**From tarball:**
+```bash
+tar -xzf appian-deployment-mcp.tar.gz
+cd appian-deployment-mcp
+./setup.sh
+```
+
+**From git:**
 ```bash
 git clone https://github.com/kelseymross/appian-deployment-mcp.git
 cd appian-deployment-mcp
