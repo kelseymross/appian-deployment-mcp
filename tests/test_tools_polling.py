@@ -610,10 +610,13 @@ class TestTerminalStatusSets:
             "COMPLETED_WITH_PUBLISH_ERRORS",
             "COMPLETED_WITH_EXPORT_ERRORS",
             "FAILED",
-            "PENDING_REVIEW",
             "REJECTED",
         }
         assert DEPLOYMENT_TERMINAL_STATUSES == expected
+
+    def test_pending_review_not_terminal(self):
+        """PENDING_REVIEW is not a terminal status — polling should continue."""
+        assert "PENDING_REVIEW" not in DEPLOYMENT_TERMINAL_STATUSES
 
     def test_inspection_terminal_statuses_contains_expected(self):
         """INSPECTION_TERMINAL_STATUSES contains all documented terminal statuses."""

@@ -184,6 +184,10 @@ echo ""
 echo -e "${CYAN}Generating MCP configuration...${NC}"
 echo ""
 
+# Build the env JSON
+ENV_LINES=$(printf ",\n%s" "${ENV_JSON_PARTS[@]}")
+ENV_LINES="${ENV_LINES:2}" # Remove leading comma and newline
+
 # Build just the server entry (for merging into existing configs)
 SERVER_ENTRY=$(cat <<EOF
     "appian-deployment": {

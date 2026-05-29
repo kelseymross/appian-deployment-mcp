@@ -1,7 +1,9 @@
 """MCP tool for end-to-end export-and-deploy workflow."""
 
+import asyncio
 import shutil
 import tempfile
+import time
 from pathlib import Path
 
 from ..client import AppianClient
@@ -60,8 +62,6 @@ async def export_and_deploy(
         A dict with export_uuid, import_uuid, inspection results (if performed),
         and final deployment status. Returns partial results if any step fails.
     """
-    import asyncio
-
     if export_type not in ("package", "application"):
         return {"error": True, "message": f"Invalid export_type '{export_type}'."}
 
@@ -293,10 +293,7 @@ async def _poll_until_complete(
     client: AppianClient, path: str, max_wait: int = 300, interval: int = 5
 ) -> dict:
     """Poll an endpoint until it reaches a terminal status or times out."""
-    import asyncio
-    import time
-
-    start = time.time()
+    start = time.monotonic()
     while True:
         result = await client.get(path)
         if result.get("error"):
@@ -306,7 +303,7 @@ async def _poll_until_complete(
         if status not in ("IN_PROGRESS",):
             return result
 
-        elapsed = time.time() - start
+        elapsed = time.monotonic() - start
         if elapsed >= max_wait:
             return {"error": True, "message": "Timed out waiting for completion.", "last_status": result}
 
